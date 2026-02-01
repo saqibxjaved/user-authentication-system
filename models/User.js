@@ -1,29 +1,40 @@
-const mongoose = require ('mongoose');
-const {isEmail} = require('validator'); // 👈 Import the validator
+const mongoose = require('mongoose');
+const { isEmail } = require('validator');
 const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
     email: {
         type: String,
-        required: [true,'please enter email'],
+        required: [true, 'Please enter an email'],
         unique: true,
         lowercase: true,
-        trim: true,
-        validate: [isEmail, 'please enter a valid email'] // 👈 Validate the email
+        validate: [isEmail, 'Please enter a valid email']
     },
     password: {
         type: String,
-        require: [true,'please enter password'],
-        minlength: [ 6, 'min length is 6']
+        required: [true, 'Please enter a password'],
+        minlength: [6, 'Minimum password length is 6 characters']
     }
 });
 
-userSchema.pre('save', async function(next) { // async (next) => { will not work because 'this' keyword is not 
-    // 1. Generate a "salt" (random data)     // present in arrow functions
+// Fire a function before doc saved to db
+userSchema.pre('save', async function() {
     const salt = await bcrypt.genSalt();
     this.password = await bcrypt.hash(this.password, salt);
-    next();
 });
+
+// 👇 THIS IS THE PART YOU NEED TO FIX
+userSchema.statics.login = async function(email, password) {
+    const user = await this.findOne({ email });
+    if (user) {
+        const auth = await bcrypt.compare(password, user.password);
+        if (auth) {
+            return user;
+        }
+        throw Error('incorrect password'); // 👈 MUST BE 'throw Error'
+    }
+    throw Error('incorrect email'); // 👈 MUST BE 'throw Error'
+};
 
 const User = mongoose.model('user', userSchema);
 module.exports = User;

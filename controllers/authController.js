@@ -1,59 +1,80 @@
-const express = require('express');
 const User = require('../models/User');
+const jwt = require('jsonwebtoken');
 
-const signup_get = (req, res) => {
-    res.render('signup');
-};
+// Handle Errors
+const handleErrors = (err) => {
+    // 👇 PRINT THE REAL ERROR TO YOUR TERMINAL SO WE CAN SEE IT
+    console.log(err.message, err.code); 
 
-const signup_post = async (req, res) => {
-    const { email, password } = req.body;
-    try {
-        const user = new User({ email, password });
-        const result = await user.save();
-        res.status(201).send('user created successfully');
-    } catch (err) {
-        if (err.code === 11000) {
-            res.status(400).send('Error: That email is already registered.');
-        }
-        else {
-            res.status(400).send('error creating user: ' + err);
-        }
+    let errors = { email: '', password: '' };
+
+    // 1. Duplicate Email (Check for code 11000)
+    if (err.code === 11000) {
+        errors.email = 'That email is already registered';
+        return errors;
     }
-};
 
-const login_get = (req, res) => {
+    // 2. Validation Errors
+    // 👇 FIXED: Added .toLowerCase() to match "User" or "user"
+    if (err.message.toLowerCase().includes('validation failed')) {
+        Object.values(err.errors).forEach(({ properties }) => {
+            errors[properties.path] = properties.message;
+        });
+    }
+
+    return errors;
+}
+
+// Create Token Function
+const maxAge = 3 * 24 * 60 * 60; // 3 days in seconds
+const createToken = (id) => {
+    return jwt.sign({ id }, 'net ninja secret', {
+        expiresIn: maxAge
+    });
+}
+
+// ------------------- CONTROLLERS -------------------
+
+module.exports.signup_get = (req, res) => {
+    res.render('signup');
+}
+
+module.exports.login_get = (req, res) => {
     res.render('login');
-};
+}
 
-const login_post = (req, res) => {
+module.exports.signup_post = async (req, res) => {
     const { email, password } = req.body;
-    console.log(email, password);
-    res.send('user logged in');
-};
 
-//or we can use this method too
+    try {
+        const user = await User.create({ email, password });
+        const token = createToken(user._id);
+        res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
+        res.status(201).json({ user: user._id });
+    }
+    catch (err) {
+        const errors = handleErrors(err);
+        res.status(400).json({ errors });
+    }
+}
 
-// router.get('/signup', (req,res)=> {
-//     res.render('signup');
-// });
+module.exports.login_post = async (req, res) => {
+    const { email, password } = req.body;
 
-// router.post('/signup', (req,res)=> {
-//     res.send('new user created');
-// });
+    try {
+        const user = await User.login(email, password);
+        const token = createToken(user._id);
+        res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
+        res.status(200).json({ user: user._id });
+    }
+    catch (err) {
+        // Now this will catch 'incorrect email' or 'incorrect password'
+        const errors = handleErrors(err);
+        res.status(400).json({ errors });
+    }
+}
 
-// router.get('/login', (req,res)=> {
-//     res.render('login');
-// });
-
-// router.post('/login', (req,res)=> {
-//     res.send('login successfully');
-// });
-
-//now we are going to export these functions
-
-module.exports = {
-    signup_get,
-    signup_post,
-    login_get,
-    login_post
-};
+module.exports.logout_get = async (req, res) => {
+res.cookie('jwt', '', { maxAge: 1 }); // Overwrite the cookie to log out
+res.redirect('/'); // Redirect to home page after logout
+}
