@@ -8,7 +8,7 @@ A full-stack Hospital Management System built with the MERN stack (MongoDB, Expr
 
 > Dashboard · Patients · Doctors · Appointments (Calendar) · Medical Records · Wards · Billing  
    
----
+---        
 
 ## ✨ Features 
 
