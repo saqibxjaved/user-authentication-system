@@ -2,7 +2,7 @@
 
 A full-stack Hospital Management System built with the MERN stack (MongoDB, Express, React, Node.js). MediCore covers the complete workflow of a real hospital — from patient registration and doctor management to appointments, medical records, ward beds, billing and online consultations via Google Meet.
      
----
+---    
 
 ## 📸 Preview  
 
