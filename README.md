@@ -35,7 +35,7 @@ A full-stack Hospital Management System built with the MERN stack (MongoDB, Expr
 - **Google Meet link auto-generated** for online appointments
 - **1-hour cancellation lock** — appointments cannot be cancelled within 1 hour of scheduled time
 - Time slot conflict prevention per doctor
-
+    
 ### 🩺 Medical Records
 - One record per patient with blood group, allergies, and chronic conditions
 - Visit history with diagnoses, doctor notes, vitals, prescriptions, and lab results
