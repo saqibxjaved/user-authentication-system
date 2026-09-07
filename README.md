@@ -11,7 +11,7 @@ A full-stack Hospital Management System built with the MERN stack (MongoDB, Expr
 ---        
 
 ## ✨ Features 
-
+ 
 ### 🔐 Authentication & Role-Based Access
 - JWT-based authentication with secure token storage
 - 5 roles with granular permissions: **Admin**, **Doctor**, **Receptionist**, **Nurse**, **Patient**  
